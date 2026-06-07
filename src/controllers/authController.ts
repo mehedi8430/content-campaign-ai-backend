@@ -2,22 +2,8 @@ import { prisma } from '@/config/db';
 import { sendError, sendResponse } from '@/utils/apiResponse';
 import catchAsync from '@/utils/catchAsync';
 import { Request, Response } from 'express';
-import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-
-// const generateToken = (id: string): string => {
-//   const secret = process.env.JWT_SECRET;
-//   if (!secret) {
-//     throw new Error('JWT_SECRET is not defined');
-//   }
-
-//   const envExpires = process.env.JWT_EXPIRE;
-//   const expiresIn: SignOptions['expiresIn'] = envExpires
-//     ? (envExpires as unknown as SignOptions['expiresIn'])
-//     : ('1d' as const);
-
-//   return jwt.sign({ id }, secret, { expiresIn });
-// };
+import { generateToken } from '@/utils/generateToken';
 
 const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -28,7 +14,7 @@ const register = catchAsync(async (req: Request, res: Response) => {
   });
 
   if (userExists) {
-    sendError(res, 400, 'User already exists');
+    sendError(res, 400, 'User already exists with this email');
     return;
   }
 
@@ -57,46 +43,40 @@ const register = catchAsync(async (req: Request, res: Response) => {
 
 const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
+  // check user exist in table
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    sendError(res, 400, 'Invalid email or password');
+    return;
+  }
+
+  // verify password
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    sendError(res, 400, 'Invalid email or password');
+    return;
+  }
+
+  // generate jwt token
+  const token = generateToken(user.id, res);
+
+  sendResponse(
+    res,
+    200,
+    true,
+    'User loggedin successfully',
+    {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      token
+    });
 });
 
 export { register, login };
-
-// export const login = catchAsync(async (req: Request, res: Response) => {
-//   const { email, password } = req.body;
-
-//   const user = await User.findOne({ email }).select('+password');
-//   if (!user || !(await user.comparePassword(password))) {
-//     sendError(res, 401, 'Invalid credentials');
-//     return;
-//   }
-
-//   const token = generateToken(user._id.toString());
-
-//   sendResponse(res, 200, true, 'Login successful', {
-//     user: {
-//       id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       role: user.role,
-//     },
-//     token,
-//   });
-// });
-
-// export const getProfile = catchAsync(async (req: Request, res: Response) => {
-//   const user = await User.findById(req.user?.id);
-
-//   if (!user) {
-//     sendError(res, 404, 'User not found');
-//     return;
-//   }
-
-//   sendResponse(res, 200, true, 'Profile retrieved successfully', {
-//     user: {
-//       id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       role: user.role,
-//     },
-//   });
-// });

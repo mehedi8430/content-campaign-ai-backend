@@ -6,27 +6,22 @@ import { validate } from '@/middleware/validation';
 
 const router = Router();
 
-router.post(
-  '/register',
-  [
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password')
-      .isLength({ min: 6 })
-      .withMessage('Password must be at least 6 characters'),
-  ],
-  validate,
-  register
-);
+const registerValidation = [
+  body('email').trim().isEmail().withMessage('Valid email is required'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+];
 
-router.post(
-  '/login',
-  [
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').exists().withMessage('Password is required'),
-  ],
-  validate,
-  login
-);
+const loginValidation = [
+  body('email').trim().isEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+];
+
+router.post('/register', registerValidation, validate, register);
+router.post('/login', loginValidation, validate, login);
 
 // router.get('/profile', protect, getProfile);
 
