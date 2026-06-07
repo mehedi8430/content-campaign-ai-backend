@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { login, register, } from '@/controllers/authController';
-import { protect } from '@/middleware/auth';
+import { login, logout, register, } from '@/controllers/authController';
+// import { protect } from '@/middleware/auth';
 import { validate } from '@/middleware/validation';
 
 const router = Router();
@@ -22,6 +22,7 @@ const loginValidation = [
 
 router.post('/register', registerValidation, validate, register);
 router.post('/login', loginValidation, validate, login);
+router.post('/logout', logout);
 
 // router.get('/profile', protect, getProfile);
 

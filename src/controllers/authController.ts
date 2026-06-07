@@ -79,4 +79,17 @@ const login = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-export { register, login };
+const logout = catchAsync(async (req: Request, res: Response) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(),
+  });
+
+  sendResponse(res,
+    200,
+    true,
+    "Logged out successfully"
+  );
+})
+
+export { register, login, logout };
