@@ -19,7 +19,7 @@ import bcrypt from 'bcryptjs';
 //   return jwt.sign({ id }, secret, { expiresIn });
 // };
 
-const register = async (req: Request, res: Response) => {
+const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   // user exists check
@@ -53,34 +53,13 @@ const register = async (req: Request, res: Response) => {
         createdAt: user.createdAt,
       }
     });
-}
+});
 
-export { register };
+const login = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+});
 
-// export const register = catchAsync(async (req: Request, res: Response) => {
-//   const { name, email, password } = req.body;
-
-//   const userExists = await User.findOne({ email });
-//   if (userExists) {
-//     sendError(res, 400, 'User already exists');
-//     return;
-//   }
-
-//   const user = await User.create({
-//     name,
-//     email,
-//     password,
-//   });
-
-//   sendResponse(res, 201, true, 'User registered successfully', {
-//     user: {
-//       id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       role: user.role,
-//     },
-//   });
-// });
+export { register, login };
 
 // export const login = catchAsync(async (req: Request, res: Response) => {
 //   const { email, password } = req.body;
